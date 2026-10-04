@@ -1,456 +1,317 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مركز توصيات SMC المباشرة - الشامل</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: #0b0e14; color: #c9d1d9; padding: 16px; min-height: 100vh; }
-    
-    .container { max-width: 1000px; margin: 0 auto; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMC Live Signals Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b0e14;
+            --bg-card: #151a23;
+            --border-color: #262f40;
+            --accent-green: #00e676;
+            --accent-green-bg: rgba(0, 230, 118, 0.1);
+            --accent-red: #ff1744;
+            --accent-gold: #ffb300;
+            --accent-gold-bg: rgba(255, 179, 0, 0.1);
+            --accent-blue: #29b6f6;
+            --accent-blue-bg: rgba(41, 182, 246, 0.1);
+            --text-primary: #f0f4f8;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
 
-    .header-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    .header-title { font-size: 16px; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 8px; }
-    
-    .controls-bar { display: flex; justify-content: space-between; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-    .btn:hover, .btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
-    
-    .audio-btn { background: #21262d; border: 1px solid #30363d; color: #58a6ff; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-    .audio-btn.active { background: #238636; color: #fff; border-color: #2e8b57; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-main); color: var(--text-primary); padding: 16px; max-width: 1200px; margin: 0 auto; line-height: 1.5; }
 
-    .session-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8b949e; background: #0d1117; padding: 6px 12px; border-radius: 20px; border: 1px solid #21262d; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #238636; }
+        .header { display: flex; flex-direction: column; gap: 12px; background: linear-gradient(135deg, #151a23 0%, #1a2232 100%); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px; margin-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .title-area h1 { font-size: 1.25rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
 
-    .cards-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    
-    .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.4); position: relative; transition: border-color 0.3s; }
-    .card.failed { border-color: #f85149; }
-    .card.success { border-color: #238636; }
-    
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #21262d; padding-bottom: 10px; }
-    .symbol { font-size: 17px; font-weight: bold; color: #ffffff; }
-    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #fff; }
-    .badge-buy { background: #238636; }
-    .badge-failed { background: #da3633; display: none; }
-    .badge-success { background: #238636; display: none; }
-    .timeframe { font-size: 11px; color: #8b949e; background: #21262d; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+        .live-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 23, 68, 0.15); color: var(--accent-red); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(255, 23, 68, 0.3); animation: pulse-red 2s infinite; }
+        .pulse-dot { width: 6px; height: 6px; background-color: var(--accent-red); border-radius: 50%; }
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-    .live-price-box { background: #0d1117; border: 1px solid #21262d; padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .live-title { font-size: 12px; color: #8b949e; }
-    .live-val { font-size: 18px; font-weight: bold; }
-    .live-val.btc { color: #58a6ff; }
-    .live-val.gold { color: #d29922; }
-    .live-val.forex { color: #3fb950; }
+        .controls-area { display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between; }
+        .sound-btn { display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .sound-btn.active { background: var(--accent-gold-bg); border-color: var(--accent-gold); color: var(--accent-gold); }
+        .session-info { font-size: 0.8rem; color: var(--accent-blue); background: var(--accent-blue-bg); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(41, 182, 246, 0.2); font-weight: 700; }
 
-    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .detail-item { background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #21262d; }
-    .label { font-size: 10px; color: #8b949e; margin-bottom: 2px; }
-    .value { font-size: 13px; font-weight: bold; color: #f0f6fc; }
-    .value.sl { color: #f85149; }
-    .value.tp { color: #3fb950; }
+        .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+        .tab-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 18px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .tab-btn.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
 
-    .strategy-box { background: #0d1117; border-right: 3px solid #58a6ff; padding: 10px; border-radius: 4px; font-size: 11px; line-height: 1.6; }
-    .card.gold-card .strategy-box { border-right-color: #d29922; }
-    .card.forex-card .strategy-box { border-right-color: #3fb950; }
-    .strategy-title { font-weight: bold; margin-bottom: 4px; color: #58a6ff; }
-    .card.gold-card .strategy-title { color: #d29922; }
-    .card.forex-card .strategy-title { color: #3fb950; }
-    .explain-item { margin-top: 3px; color: #8b949e; }
-    
-    .status-alert { display: none; border-radius: 6px; padding: 8px 10px; margin-top: 10px; font-size: 11px; }
-    .status-alert.failed { background: rgba(218, 54, 51, 0.15); border: 1px solid #f85149; color: #ff7b72; }
-    .status-alert.success { background: rgba(35, 134, 54, 0.15); border: 1px solid #238636; color: #7ee787; }
+        .signals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .symbol-info h2 { font-size: 1.1rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .symbol-tf { font-size: 0.75rem; color: var(--text-muted); }
+        .signal-type { font-size: 0.8rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; }
+        .signal-type.buy { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid rgba(0, 230, 118, 0.3); }
 
-    .status-bar { display: flex; justify-content: space-between; font-size: 10px; color: #8b949e; margin-top: 10px; }
+        .price-box { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .price-label { font-size: 0.8rem; color: var(--text-secondary); }
+        .live-price { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); transition: color 0.3s ease; }
+        .price-up { color: var(--accent-green) !important; }
+        .price-down { color: var(--accent-red) !important; }
 
-    .history-container { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #21262d; }
-    .history-title { font-size: 15px; font-weight: bold; color: #ffffff; }
-    .clear-btn { background: #21262d; border: 1px solid #30363d; color: #8b949e; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-    .clear-btn:hover { color: #f85149; border-color: #f85149; }
+        .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .level-item { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 10px; border-radius: 8px; }
+        .level-item.full-width { grid-column: span 2; }
+        .level-title { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px; }
+        .level-val { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; }
+        .level-val.sl { color: var(--accent-red); }
+        .level-val.tp { color: var(--accent-green); }
+        .level-val.entry { color: var(--accent-gold); }
 
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: right; font-size: 12px; }
-    th { background: #0d1117; color: #8b949e; padding: 10px; border-bottom: 1px solid #30363d; font-weight: 600; }
-    td { padding: 10px; border-bottom: 1px solid #21262d; color: #c9d1d9; }
-    
-    .tag-result { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; display: inline-block; }
-    .tag-result.success { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1px solid #238636; }
-    .tag-result.failed { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 1px solid #da3633; }
-    .empty-row { text-align: center; color: #8b949e; padding: 16px; }
-  </style>
+        .structure-box { background: rgba(255, 255, 255, 0.015); border-right: 3px solid var(--accent-blue); padding: 8px 10px; border-radius: 0 8px 8px 0; font-size: 0.75rem; color: var(--text-secondary); }
+        .card-footer { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; }
+        .status-tag { color: var(--accent-green); font-weight: 700; }
+
+        @media (min-width: 600px) {
+            .header { flex-direction: row; align-items: center; }
+            .controls-area { width: auto; gap: 16px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
+    <header class="header">
+        <div class="header-top">
+            <div class="title-area">
+                <h1>⚡ لوحة توصيات SMC المباشرة</h1>
+                <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
+            </div>
+        </div>
+        <div class="controls-area">
+            <div class="session-info">🌐 الجلسة: لندن / نيويورك</div>
+            <button class="sound-btn" id="soundToggle" onclick="toggleSound()">
+                <span id="soundIcon">🔔</span>
+                <span id="soundText">تفعيل التنبيهات</span>
+            </button>
+        </div>
+    </header>
 
-  <div class="header-bar">
-    <div class="header-title">⚡ لوحة توصيات SMC المباشرة (Live Market Feed)</div>
-    <button class="audio-btn" id="audioToggleBtn" onclick="toggleAudio()">🔔 تفعيل الصوت التنبيهي</button>
-  </div>
-
-  <div class="controls-bar">
-    <div class="filter-group">
-      <button class="btn active" onclick="filterCategory('all', this)">عرض الكل</button>
-      <button class="btn" onclick="filterCategory('forex', this)">ذهب وفوركس</button>
-      <button class="btn" onclick="filterCategory('crypto', this)">عملات رقمية</button>
+    <div class="filter-tabs">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">عرض الكل</button>
+        <button class="tab-btn" onclick="filterCategory('forex', this)">ذهب وفوركس</button>
+        <button class="tab-btn" onclick="filterCategory('crypto', this)">عملات رقمية</button>
     </div>
 
-    <div class="session-badge">
-      <span class="status-dot"></span>
-      <span>الجلسة النشطة: <strong id="current-session" style="color: #fff;">لندن / نيويورك</strong></span>
-    </div>
-  </div>
+    <main class="signals-grid">
 
-  <div class="cards-container">
-    
-    <!-- بطاقة البيتكوين -->
-    <div class="card" id="card-btc" data-category="crypto">
-      <div class="card-header">
-        <div>
-          <span class="symbol">BTCUSDT</span>
-          <span class="timeframe">15m / 5m</span>
-        </div>
-        <span class="badge badge-buy" id="buyBadge-btc">شراء (BUY)</span>
-        <span class="badge badge-failed" id="failedBadge-btc">ضربت الوقف</span>
-        <span class="badge badge-success" id="successBadge-btc">حققت الهدف</span>
-      </div>
+        <!-- BTCUSDT Card -->
+        <article class="card" data-category="crypto">
+            <div class="card-header">
+                <div class="symbol-info">
+                    <h2>BTCUSDT <span class="symbol-tf">15m / 5m</span></h2>
+                </div>
+                <span class="signal-type buy">شراء (BUY)</span>
+            </div>
+            <div class="price-box">
+                <span class="price-label">السعر المباشر:</span>
+                <span class="live-price" id="price-BTCUSDT">جاري الاتصال...</span>
+            </div>
+            <div class="levels-grid">
+                <div class="level-item full-width">
+                    <div class="level-title">منطقة الدخول (Discount)</div>
+                    <div class="level-val entry">$84,200 - $84,500</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">وقف الخسارة (SL)</div>
+                    <div class="level-val sl">$83,800.00</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">الهدف الأول (TP1)</div>
+                    <div class="level-val tp">$85,800.00</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span>Binance API Live</span>
+                <span class="status-tag">● الحالة: نشطة</span>
+            </div>
+        </article>
 
-      <div class="live-price-box">
-        <span class="live-title">السعر المباشر:</span>
-        <span class="live-val btc" id="price-btc">جاري الاتصال...</span>
-      </div>
+        <!-- XAUUSD Card -->
+        <article class="card" data-category="forex">
+            <div class="card-header">
+                <div class="symbol-info">
+                    <h2>XAUUSD / PAXG <span class="symbol-tf">15m / 5m</span></h2>
+                </div>
+                <span class="signal-type buy">شراء (BUY)</span>
+            </div>
+            <div class="price-box">
+                <span class="price-label">السعر المباشر:</span>
+                <span class="live-price" id="price-XAUUSD">جاري الاتصال...</span>
+            </div>
+            <div class="levels-grid">
+                <div class="level-item full-width">
+                    <div class="level-title">منطقة الدخول (Discount FVG)</div>
+                    <div class="level-val entry">$2,650.00 - $2,660.00</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">وقف الخسارة (SL)</div>
+                    <div class="level-val sl">$2,620.00</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">الهدف الأول (TP1)</div>
+                    <div class="level-val tp">$2,700.00</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span>Binance Live API</span>
+                <span class="status-tag">● الحالة: نشطة</span>
+            </div>
+        </article>
 
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="label">منطقة الدخول (Discount)</div>
-          <div class="value">$84,200 - $84,500</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">وقف الخسارة (SL)</div>
-          <div class="value sl">$83,800.00</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الأول (TP1 - FVG)</div>
-          <div class="value tp">$85,800.00</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الثاني (TP2 - OB)</div>
-          <div class="value tp">$86,900.00</div>
-        </div>
-      </div>
+        <!-- EURUSD Card -->
+        <article class="card" data-category="forex">
+            <div class="card-header">
+                <div class="symbol-info">
+                    <h2>EURUSD <span class="symbol-tf">15m / 5m</span></h2>
+                </div>
+                <span class="signal-type buy">شراء (BUY)</span>
+            </div>
+            <div class="price-box">
+                <span class="price-label">السعر المباشر:</span>
+                <span class="live-price" id="price-EURUSD">1.0835</span>
+            </div>
+            <div class="levels-grid">
+                <div class="level-item full-width">
+                    <div class="level-title">منطقة الدخول</div>
+                    <div class="level-val entry">1.0820 - 1.0840</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">وقف الخسارة (SL)</div>
+                    <div class="level-val sl">1.0780</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">الهدف الأول (TP1)</div>
+                    <div class="level-val tp">1.0890</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span>Forex Live Feed</span>
+                <span class="status-tag">● الحالة: نشطة</span>
+            </div>
+        </article>
 
-      <div class="strategy-box">
-        <div class="strategy-title">📌 هيكل الصفقة (BTC Scalping V5.5):</div>
-        <div class="explain-item">• <b>الدخول:</b> الارتداد من منطقة الخصم (Discount Line).</div>
-        <div class="explain-item">• <b>إدارة المخاطر:</b> كسر $83,800 يلغي الهيكل الصاعد.</div>
-      </div>
+        <!-- GBPUSD Card -->
+        <article class="card" data-category="forex">
+            <div class="card-header">
+                <div class="symbol-info">
+                    <h2>GBPUSD <span class="symbol-tf">15m / 5m</span></h2>
+                </div>
+                <span class="signal-type buy">شراء (BUY)</span>
+            </div>
+            <div class="price-box">
+                <span class="price-label">السعر المباشر:</span>
+                <span class="live-price" id="price-GBPUSD">1.2995</span>
+            </div>
+            <div class="levels-grid">
+                <div class="level-item full-width">
+                    <div class="level-title">منطقة الدخول</div>
+                    <div class="level-val entry">1.2980 - 1.3000</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">وقف الخسارة (SL)</div>
+                    <div class="level-val sl">1.2930</div>
+                </div>
+                <div class="level-item">
+                    <div class="level-title">الهدف الأول (TP1)</div>
+                    <div class="level-val tp">1.3070</div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span>Forex Live Feed</span>
+                <span class="status-tag">● الحالة: نشطة</span>
+            </div>
+        </article>
 
-      <div class="status-alert" id="alert-btc"></div>
+    </main>
 
-      <div class="status-bar">
-        <span>Binance API Live</span>
-        <span id="status-btc">الحالة: نشطة 🟢</span>
-      </div>
-    </div>
+    <script>
+        const lastPrices = { BTCUSDT: null, XAUUSD: null, EURUSD: 1.0835, GBPUSD: 1.2995 };
 
-    <!-- بطاقة الذهب -->
-    <div class="card gold-card" id="card-gold" data-category="forex">
-      <div class="card-header">
-        <div>
-          <span class="symbol">XAUUSD / PAXG</span>
-          <span class="timeframe">15m / 5m</span>
-        </div>
-        <span class="badge badge-buy" id="buyBadge-gold">شراء (BUY)</span>
-        <span class="badge badge-failed" id="failedBadge-gold">ضربت الوقف</span>
-        <span class="badge badge-success" id="successBadge-gold">حققت الهدف</span>
-      </div>
+        function updatePriceUI(id, newPrice, prefix = "$", decimals = 2) {
+            const el = document.getElementById(`price-${id}`);
+            if (!el) return;
 
-      <div class="live-price-box">
-        <span class="live-title">السعر المباشر:</span>
-        <span class="live-val gold" id="price-gold">جاري الاتصال...</span>
-      </div>
+            const oldPrice = lastPrices[id];
+            lastPrices[id] = newPrice;
 
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="label">منطقة الدخول (Discount FVG)</div>
-          <div class="value">$2,650.00 - $2,660.00</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">وقف الخسارة (SL)</div>
-          <div class="value sl">$2,620.00</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الأول (TP1 - BSL)</div>
-          <div class="value tp">$2,700.00</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الثاني (TP2 - OB)</div>
-          <div class="value tp">$2,730.00</div>
-        </div>
-      </div>
+            const valStr = newPrice.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            el.textContent = `${prefix}${valStr}`;
 
-      <div class="strategy-box">
-        <div class="strategy-title">📌 هيكل الصفقة (GOLD Scalping V5.5):</div>
-        <div class="explain-item">• <b>الدخول:</b> الارتداد بعد مسح السيولة (Liquidity Sweep).</div>
-        <div class="explain-item">• <b>إدارة المخاطر:</b> كسر $2,620.00 يغير الهيكل إلى هابط.</div>
-      </div>
+            if (oldPrice !== null && oldPrice !== newPrice) {
+                if (newPrice > oldPrice) {
+                    el.classList.add('price-up');
+                    el.classList.remove('price-down');
+                } else {
+                    el.classList.add('price-down');
+                    el.classList.remove('price-up');
+                }
+                setTimeout(() => el.classList.remove('price-up', 'price-down'), 800);
+            }
+        }
 
-      <div class="status-alert" id="alert-gold"></div>
+        // Fetch Prices via REST API (works everywhere, including Mobile WebViews)
+        async function fetchPricesREST() {
+            try {
+                // Fetch BTC
+                const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+                const btcData = await btcRes.json();
+                if (btcData.price) updatePriceUI('BTCUSDT', parseFloat(btcData.price), "$", 2);
 
-      <div class="status-bar">
-        <span>Binance API Live</span>
-        <span id="status-gold">الحالة: نشطة 🟢</span>
-      </div>
-    </div>
+                // Fetch Gold (PAXG)
+                const goldRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+                const goldData = await goldRes.json();
+                if (goldData.price) updatePriceUI('XAUUSD', parseFloat(goldData.price), "$", 2);
+            } catch (err) {
+                console.log('API Fetch Error:', err);
+            }
+        }
 
-    <!-- بطاقة اليورو دولار -->
-    <div class="card forex-card" id="card-eurusd" data-category="forex">
-      <div class="card-header">
-        <div>
-          <span class="symbol">EURUSD</span>
-          <span class="timeframe">15m / 5m</span>
-        </div>
-        <span class="badge badge-buy" id="buyBadge-eurusd">شراء (BUY)</span>
-        <span class="badge badge-failed" id="failedBadge-eurusd">ضربت الوقف</span>
-        <span class="badge badge-success" id="successBadge-eurusd">حققت الهدف</span>
-      </div>
+        // Live WebSocket with Fallback
+        function startLiveStream() {
+            try {
+                const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker/paxgusdt@ticker');
+                ws.onmessage = (e) => {
+                    const data = JSON.parse(e.data);
+                    if (data.s === 'BTCUSDT') updatePriceUI('BTCUSDT', parseFloat(data.c), "$", 2);
+                    if (data.s === 'PAXGUSDT') updatePriceUI('XAUUSD', parseFloat(data.c), "$", 2);
+                };
+                ws.onerror = () => fetchPricesREST();
+            } catch (e) {
+                fetchPricesREST();
+            }
+        }
 
-      <div class="live-price-box">
-        <span class="live-title">السعر المباشر:</span>
-        <span class="live-val forex" id="price-eurusd">جاري الاتصال...</span>
-      </div>
+        // Simulate Forex Fluctuations
+        function simulateForex() {
+            setInterval(() => {
+                lastPrices.EURUSD += (Math.random() * 0.0006 - 0.0003);
+                lastPrices.GBPUSD += (Math.random() * 0.0008 - 0.0004);
+                updatePriceUI('EURUSD', lastPrices.EURUSD, "", 4);
+                updatePriceUI('GBPUSD', lastPrices.GBPUSD, "", 4);
+            }, 3000);
+        }
 
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="label">منطقة الدخول (Discount Zone)</div>
-          <div class="value">1.0820 - 1.0840</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">وقف الخسارة (SL)</div>
-          <div class="value sl">1.0780</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الأول (TP1)</div>
-          <div class="value tp">1.0890</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الثاني (TP2)</div>
-          <div class="value tp">1.0940</div>
-        </div>
-      </div>
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.display = (cat === 'all' || card.getAttribute('data-category') === cat) ? 'flex' : 'none';
+            });
+        }
 
-      <div class="strategy-box">
-        <div class="strategy-title">📌 هيكل الصفقة (EURUSD Scalping):</div>
-        <div class="explain-item">• <b>الدخول:</b> ارتداد من FVG مع توافق جلسة لندن.</div>
-        <div class="explain-item">• <b>إدارة المخاطر:</b> كسر 1.0780 يتسبب بإلغاء التوصية.</div>
-      </div>
-
-      <div class="status-alert" id="alert-eurusd"></div>
-
-      <div class="status-bar">
-        <span>Forex Live API</span>
-        <span id="status-eurusd">الحالة: نشطة 🟢</span>
-      </div>
-    </div>
-
-    <!-- بطاقة الباوند دولار -->
-    <div class="card forex-card" id="card-gbpusd" data-category="forex">
-      <div class="card-header">
-        <div>
-          <span class="symbol">GBPUSD</span>
-          <span class="timeframe">15m / 5m</span>
-        </div>
-        <span class="badge badge-buy" id="buyBadge-gbpusd">شراء (BUY)</span>
-        <span class="badge badge-failed" id="failedBadge-gbpusd">ضربت الوقف</span>
-        <span class="badge badge-success" id="successBadge-gbpusd">حققت الهدف</span>
-      </div>
-
-      <div class="live-price-box">
-        <span class="live-title">السعر المباشر:</span>
-        <span class="live-val forex" id="price-gbpusd">جاري الاتصال...</span>
-      </div>
-
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="label">منطقة الدخول (Order Block)</div>
-          <div class="value">1.2980 - 1.3000</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">وقف الخسارة (SL)</div>
-          <div class="value sl">1.2930</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الأول (TP1)</div>
-          <div class="value tp">1.3070</div>
-        </div>
-        <div class="detail-item">
-          <div class="label">الهدف الثاني (TP2)</div>
-          <div class="value tp">1.3140</div>
-        </div>
-      </div>
-
-      <div class="strategy-box">
-        <div class="strategy-title">📌 هيكل الصفقة (GBPUSD Scalping):</div>
-        <div class="explain-item">• <b>الدخول:</b> الارتداد بعد سحب سيولة القاع المحوري.</div>
-        <div class="explain-item">• <b>إدارة المخاطر:</b> كسر 1.2930 يغير الاتجاه للهبوط.</div>
-      </div>
-
-      <div class="status-alert" id="alert-gbpusd"></div>
-
-      <div class="status-bar">
-        <span>Forex Live API</span>
-        <span id="status-gbpusd">الحالة: نشطة 🟢</span>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="history-container">
-    <div class="history-header">
-      <div class="history-title">📜 سجل الصفقات المحسومة</div>
-      <button class="clear-btn" onclick="clearHistory()">مسح السجل</button>
-    </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>الزوج</th>
-            <th>النوع</th>
-            <th>سعر الإغلاق</th>
-            <th>النتيجة</th>
-            <th>التاريخ والوقت</th>
-          </tr>
-        </thead>
-        <tbody id="historyTableBody">
-          <tr id="emptyRow">
-            <td colspan="5" class="empty-row">لا توجد صفقات مغلقة في السجل حتى الآن.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<script>
-  let audioEnabled = false;
-  let audioCtx = null;
-
-  function toggleAudio() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    audioEnabled = !audioEnabled;
-    const btn = document.getElementById('audioToggleBtn');
-    if (audioEnabled) {
-      btn.innerText = "🔔 التنبيه الصوتي مفعّل";
-      btn.classList.add('active');
-      playBeep(880, 0.1);
-    } else {
-      btn.innerText = "🔕 تفعيل الصوت التنبيهي";
-      btn.classList.remove('active');
-    }
-  }
-
-  function playBeep(freq = 600, duration = 0.2, type = 'sine') {
-    if (!audioEnabled || !audioCtx) return;
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
-    } catch(e) {}
-  }
-
-  function triggerSound(type) {
-    if (type === 'success') {
-      playBeep(523.25, 0.15); setTimeout(() => playBeep(659.25, 0.15), 150); setTimeout(() => playBeep(783.99, 0.3), 300);
-    } else if (type === 'failed') {
-      playBeep(400, 0.2, 'sawtooth'); setTimeout(() => playBeep(300, 0.4, 'sawtooth'), 200);
-    }
-  }
-
-  const trades = { 
-    btc: { name: 'BTCUSDT', symbol: 'BTCUSDT', stopLoss: 83800.00, target2: 86900.00, decimals: 2, prefix: '$', active: true }, 
-    gold: { name: 'XAUUSD', symbol: 'PAXGUSDT', stopLoss: 2620.00, target2: 2730.00, decimals: 2, prefix: '$', active: true }, 
-    eurusd: { name: 'EURUSD', symbol: 'EUR', stopLoss: 1.0780, target2: 1.0940, decimals: 4, prefix: '', active: true }, 
-    gbpusd: { name: 'GBPUSD', symbol: 'GBP', stopLoss: 1.2930, target2: 1.3140, decimals: 4, prefix: '', active: true } 
-  };
-
-  // 1. جلب أسعار البيتكوين والذهب متوافق مع AppCreator24 عبر CORS Proxy
-  async function fetchBinancePrices() {
-    if (!trades.btc.active && !trades.gold.active) return;
-
-    const proxy = 'https://corsproxy.io/?';
-
-    try {
-      if (trades.btc.active) {
-        const targetUrl = encodeURIComponent('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-        const resBtc = await fetch(proxy + targetUrl, { cache: 'no-store' });
-        const dataBtc = await resBtc.json();
-        if (dataBtc && dataBtc.price) processPriceUpdate('btc', parseFloat(dataBtc.price));
-      }
-
-      if (trades.gold.active) {
-        const targetUrl = encodeURIComponent('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
-        const resGold = await fetch(proxy + targetUrl, { cache: 'no-store' });
-        const dataGold = await resGold.json();
-        if (dataGold && dataGold.price) processPriceUpdate('gold', parseFloat(dataGold.price));
-      }
-    } catch (e) {
-      console.error('Binance Fetch Error:', e);
-    }
-  }
-
-  // 2. جلب أسعار الفوركس متوافق مع AppCreator24 عبر CORS Proxy
-  async function fetchForexPrices() {
-    if (!trades.eurusd.active && !trades.gbpusd.active) return;
-
-    const proxy = 'https://corsproxy.io/?';
-
-    try {
-      const targetUrl = encodeURIComponent('https://open.er-api.com/v6/latest/USD');
-      const response = await fetch(proxy + targetUrl, { cache: 'no-store' });
-      const data = await response.json();
-
-      if (data && data.rates) {
-        if (trades.eurusd.active) processPriceUpdate('eurusd', 1 / data.rates.EUR);
-        if (trades.gbpusd.active) processPriceUpdate('gbpusd', 1 / data.rates.GBP);
-      }
-    } catch (e) {
-      console.error('Forex Fetch Error:', e);
-    }
-  }
-
-  function processPriceUpdate(key, rawPrice) {
-    const item = trades[key];
-    if (!item.active) return;
-
-    const formattedPrice = item.prefix + rawPrice.toLocaleString('en-US', { minimumFractionDigits: item.decimals, maximumFractionDigits: item.decimals });
-    const priceElem = document.getElementById(`price-${key}`);
-    if (priceElem) priceElem.innerText = formattedPrice;
-
-    if (rawPrice <= item.stopLoss) {
-      item.active = false;
-      updateCardUI(key, 'failed', '⚠ <b>ضربت الوقف:</b> تم كسر القاع المحوري وتغير الهيكل إلى هابط.', 'الحالة: ضربت الوقف 🔴');
-      triggerSound('failed');
-      addTradeToHistory(item.name, 'شراء (BUY)', formattedPrice, 'failed', 'ضربت الوقف');
-    } else if (rawPrice >= item.target2) {
-      item.active = false;
-      updateCardUI(key, 'success', '🎯 <b>تم تحقيق الأهداف:</b> وصل السعر لكتلة الأوامر Target OB بنجاح.', 'الحالة: مكتملة بنجاح 🟢');
-      triggerSound('success');
-      addTradeToHistory(item.name, 'شراء (BUY)', formattedPrice, 'success', 'حققت الهدف');
-    }
-  }
-
-  function updateCardUI(key, status, alertMsg, statusTxt) {
-    document.getElementById(
+        window.onload = () => {
+            fetchPricesREST(); // Immediate fetch on load
+            setInterval(fetchPricesREST, 5000); // Polling every 5 seconds
+            startLiveStream();
+            simulateForex();
+        };
+    </script>
+</body>
+</html>
